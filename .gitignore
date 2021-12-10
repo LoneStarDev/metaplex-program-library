@@ -14,6 +14,6 @@ yarn-debug.log*
 yarn-error.log*
 ./package-lock.json
 
-.env
 .vscode
 .idea
+config.bat

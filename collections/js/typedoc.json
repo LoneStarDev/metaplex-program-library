@@ -1,0 +1,8 @@
+{
+  "entryPoints": [
+    "src/mpl-collections.ts"
+  ],
+  "excludeInternal": true,
+  "excludePrivate": true,
+  "out": "./docs"
+}
