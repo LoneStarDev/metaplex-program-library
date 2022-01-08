@@ -21,8 +21,13 @@ program = "target/deploy/mpl_auction_house.so"
 address = "faircnAB9k59Y4TXmLabBULeuTLgV7TkGMGNkjnA15j"
 program = "target/deploy/mpl_fair_launch.so"
 
+[[test.genesis]]
+address = "qntmGodpGkrM42mN68VCZHXnKqDCT8rdY23wFcXCLPd"
+program = "target/deploy/mpl_token_entangler.so"
+
 [workspace]
 members = [
+  "token-entangler/program",
   "token-metadata/program",
   "auction-house/program",
   "fair-launch/program",
