@@ -18,7 +18,7 @@ use {
     },
     anchor_spl::token::Token,
     arrayref::array_ref,
-    mpl_token_metadata::{
+    metaplex_token_metadata::{
         instruction::{create_master_edition, create_metadata_accounts, update_metadata_accounts},
         state::{
             MAX_CREATOR_LEN, MAX_CREATOR_LIMIT, MAX_NAME_LENGTH, MAX_SYMBOL_LENGTH, MAX_URI_LENGTH,
@@ -29,6 +29,7 @@ use {
 };
 anchor_lang::declare_id!("cndy3Z4yapfJBmL3ShUp5exZKqR3z33thTzeNMm2gRZ");
 
+const EXPIRE_OFFSET: i64 = 10 * 60;
 const PREFIX: &str = "candy_machine";
 #[program]
 pub mod nft_candy_machine_v2 {
@@ -100,9 +101,7 @@ pub mod nft_candy_machine_v2 {
             }
             // verifies that the gatway token was not created before the candy
             // machine go_live_date (avoids pre-solving the captcha)
-            let gateway_token = ::solana_gateway::borsh::try_from_slice_incomplete::<
-                ::solana_gateway::state::GatewayToken,
-            >(*gateway_token_info.data.borrow())?;
+            let gateway_token = ::solana_gateway::borsh::try_from_slice_incomplete::<::solana_gateway::state::GatewayToken,>(*gateway_token_info.data.borrow())?;
             let expire_time = gateway_token
                 .expire_time
                 .ok_or(ErrorCode::GatewayTokenExpireTimeInvalid)?
@@ -111,24 +110,8 @@ pub mod nft_candy_machine_v2 {
                 Some(val) => {
                     // Civic f-ed up - expire time is actually the time it was made...
                     if expire_time < val {
-                        if let Some(ws) = &candy_machine.data.whitelist_mint_settings {
-                            // when dealing with whitelist, the expire_time can be
-                            // before the go_live_date only if presale enabled
-                            if !ws.presale {
-                                msg!(
-                                    "Invalid gateway token expire time: {} compared with go live of {}",
-                                    expire_time,
-                                    val);
-                                return Err(ErrorCode::GatewayTokenExpireTimeInvalid.into());
-                            }
-                        } else {
-                            msg!(
-                                "Invalid gateway token expire time: {} compared with go live of {}",
-                                expire_time,
-                                val
-                            );
-                            return Err(ErrorCode::GatewayTokenExpireTimeInvalid.into());
-                        }
+                        msg!("Invalid gateway token expire time: {} compared with go live of {}", expire_time, val);
+                        return Err(ErrorCode::GatewayTokenExpireTimeInvalid.into());
                     }
                 }
                 None => {}
@@ -265,15 +248,15 @@ pub mod nft_candy_machine_v2 {
         let cm_key = candy_machine.key();
         let authority_seeds = [PREFIX.as_bytes(), cm_key.as_ref(), &[creator_bump]];
 
-        let mut creators: Vec<mpl_token_metadata::state::Creator> =
-            vec![mpl_token_metadata::state::Creator {
+        let mut creators: Vec<metaplex_token_metadata::state::Creator> =
+            vec![metaplex_token_metadata::state::Creator {
                 address: candy_machine_creator.key(),
                 verified: true,
                 share: 0,
             }];
 
         for c in &candy_machine.data.creators {
-            creators.push(mpl_token_metadata::state::Creator {
+            creators.push(metaplex_token_metadata::state::Creator {
                 address: c.address,
                 verified: false,
                 share: c.share,
@@ -650,7 +633,6 @@ fn get_space_for_candy(data: CandyMachineData) -> core::result::Result<usize, Pr
     Ok(num)
 }
 
-/// Create a new candy machine.
 #[derive(Accounts)]
 #[instruction(data: CandyMachineData)]
 pub struct InitializeCandyMachine<'info> {
@@ -663,15 +645,12 @@ pub struct InitializeCandyMachine<'info> {
     rent: Sysvar<'info, Rent>,
 }
 
-/// Add multiple config lines to the candy machine.
 #[derive(Accounts)]
 pub struct AddConfigLines<'info> {
     #[account(mut, has_one = authority)]
     candy_machine: Account<'info, CandyMachine>,
     authority: Signer<'info>,
 }
-
-/// Withdraw SOL from candy machine account.
 #[derive(Accounts)]
 pub struct WithdrawFunds<'info> {
     #[account(mut, has_one = authority)]
@@ -680,7 +659,6 @@ pub struct WithdrawFunds<'info> {
     authority: Signer<'info>,
 }
 
-/// Mint a new NFT pseudo-randomly from the config array.
 #[derive(Accounts)]
 #[instruction(creator_bump: u8)]
 pub struct MintNFT<'info> {
@@ -704,7 +682,7 @@ pub struct MintNFT<'info> {
     update_authority: Signer<'info>,
     #[account(mut)]
     master_edition: UncheckedAccount<'info>,
-    #[account(address = mpl_token_metadata::id())]
+    #[account(address = metaplex_token_metadata::id())]
     token_metadata_program: UncheckedAccount<'info>,
     token_program: Program<'info, Token>,
     system_program: Program<'info, System>,
@@ -729,7 +707,6 @@ pub struct MintNFT<'info> {
     // transfer_authority_info
 }
 
-/// Update the candy machine state.
 #[derive(Accounts)]
 pub struct UpdateCandyMachine<'info> {
     #[account(
@@ -741,7 +718,6 @@ pub struct UpdateCandyMachine<'info> {
     wallet: UncheckedAccount<'info>,
 }
 
-/// Candy machine state and config data.
 #[account]
 #[derive(Default)]
 pub struct CandyMachine {
@@ -758,10 +734,10 @@ pub struct CandyMachine {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct WhitelistMintSettings {
-    pub mode: WhitelistMintMode,
-    pub mint: Pubkey,
-    pub presale: bool,
-    pub discount_price: Option<u64>,
+    mode: WhitelistMintMode,
+    mint: Pubkey,
+    presale: bool,
+    discount_price: Option<u64>,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq)]
@@ -773,7 +749,6 @@ pub enum WhitelistMintMode {
     NeverBurn,
 }
 
-/// Candy machine settings data.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
 pub struct CandyMachineData {
     pub uuid: String,
@@ -795,14 +770,14 @@ pub struct CandyMachineData {
     pub gatekeeper: Option<GatekeeperConfig>,
 }
 
-/// Configurations options for the gatekeeper.
+/// Configurations options for the gatekeeper
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct GatekeeperConfig {
     /// The network for the gateway token required
-    pub gatekeeper_network: Pubkey,
+    gatekeeper_network: Pubkey,
     /// Whether or not the token should expire after minting.
     /// The gatekeeper network must support this if true.
-    pub expire_on_use: bool,
+    expire_on_use: bool,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
@@ -813,8 +788,8 @@ pub enum EndSettingType {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct EndSettings {
-    pub end_setting_type: EndSettingType,
-    pub number: u64,
+    end_setting_type: EndSettingType,
+    number: u64,
 }
 
 pub const CONFIG_ARRAY_START: usize = 8 + // key
@@ -846,12 +821,11 @@ pub const CONFIG_ARRAY_START: usize = 8 + // key
 1 + 32 + 1 // gatekeeper
 ;
 
-/// Hidden Settings for large mints used with offline data.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
 pub struct HiddenSettings {
-    pub name: String,
-    pub uri: String,
-    pub hash: [u8; 32],
+    name: String,
+    uri: String,
+    hash: [u8; 32],
 }
 
 pub fn get_config_count(data: &RefMut<&mut [u8]>) -> core::result::Result<usize, ProgramError> {
@@ -1004,7 +978,6 @@ pub fn get_config_line<'info>(
     Ok(config_line)
 }
 
-/// Individual config line for storing NFT data pre-mint.
 pub const CONFIG_LINE_SIZE: usize = 4 + MAX_NAME_LENGTH + 4 + MAX_URI_LENGTH;
 #[derive(AnchorSerialize, AnchorDeserialize, Debug)]
 pub struct ConfigLine {
