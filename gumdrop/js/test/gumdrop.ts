@@ -13,8 +13,8 @@ import {
   PayerTransactionHandler,
   assertTransactionSummary,
 } from '@metaplex-foundation/amman';
-import { addressLabels, killStuckProcess } from './utils';
-import { Connection, PublicKey, Transaction } from '@solana/web3.js';
+import { addressLabels, killStuckProcess, transactionCostSol } from './utils';
+import { Connection, LAMPORTS_PER_SOL, PublicKey, Transaction } from '@solana/web3.js';
 
 killStuckProcess();
 
@@ -47,9 +47,10 @@ test('newDistributor', async (t) => {
   const transaction = new Transaction().add(ix);
 
   const connection = new Connection(LOCALHOST, 'confirmed');
-  // TODO(thlorenz): this account should be fixed size
-  // const rentExcemption = MerkleDistributorAccountData.getMinimumBalanceForRentExemption(connection)
-  await airdrop(connection, payer, 1);
+  const rentExemption =
+    (await MerkleDistributorAccountData.getMinimumBalanceForRentExemption(connection)) /
+    LAMPORTS_PER_SOL;
+  await airdrop(connection, payer, rentExemption + transactionCostSol(2));
 
   const transactionHandler = new PayerTransactionHandler(connection, payerPriv);
   // TODO(thlorenz): would be nice to have a `getSigners` method on the created
