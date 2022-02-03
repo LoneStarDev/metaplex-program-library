@@ -250,6 +250,190 @@
       "args": []
     },
     {
+      "name": "suspendMarket",
+      "accounts": [
+        {
+          "name": "market",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "changeMarket",
+      "accounts": [
+        {
+          "name": "market",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "newName",
+          "type": {
+            "option": "string"
+          }
+        },
+        {
+          "name": "newDescription",
+          "type": {
+            "option": "string"
+          }
+        },
+        {
+          "name": "mutable",
+          "type": {
+            "option": "bool"
+          }
+        },
+        {
+          "name": "newPrice",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "newPiecesInOneWallet",
+          "type": {
+            "option": "u64"
+          }
+        }
+      ]
+    },
+    {
+      "name": "resumeMarket",
+      "accounts": [
+        {
+          "name": "market",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "withdraw",
+      "accounts": [
+        {
+          "name": "market",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "sellingResource",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "metadata",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryHolder",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "destination",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "funder",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payoutTicket",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "treasuryOwnerBump",
+          "type": "u8"
+        },
+        {
+          "name": "payoutTicketBump",
+          "type": "u8"
+        }
+      ]
+    },
+    {
       "name": "createMarket",
       "accounts": [
         {
@@ -329,6 +513,77 @@
           "type": {
             "option": "u64"
           }
+        }
+      ]
+    },
+    {
+      "name": "claimResource",
+      "accounts": [
+        {
+          "name": "market",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryHolder",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "sellingResource",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "sellingResourceOwner",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "vault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "metadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "destination",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMetadataProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "vaultOwnerBump",
+          "type": "u8"
         }
       ]
     }
