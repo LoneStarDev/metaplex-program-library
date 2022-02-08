@@ -3,10 +3,9 @@ import { AddressLabels } from '@metaplex-foundation/amman';
 
 import debug from 'debug';
 import { VAULT_PROGRAM_ID } from '../../src/mpl-token-vault';
-import { Connection } from '@solana/web3.js';
-import { airdrop, PayerTransactionHandler, LOCALHOST } from '@metaplex-foundation/amman';
 
 export * from './asserts';
+export * from './transactions';
 
 export const logError = debug('vault:test:error');
 export const logInfo = debug('vault:test:info');
@@ -22,19 +21,4 @@ export const addressLabels = new AddressLabels(knownLabels, logDebug, persistLab
 
 export function killStuckProcess() {
   test.onFinish(() => process.exit(0));
-}
-
-export async function init() {
-  const [authority, authorityPair] = addressLabels.genKeypair('authority');
-
-  const connection = new Connection(LOCALHOST, 'confirmed');
-  await airdrop(connection, authority, 2);
-
-  const transactionHandler = new PayerTransactionHandler(connection, authorityPair);
-  return {
-    transactionHandler,
-    connection,
-    authority,
-    authorityPair,
-  };
 }
